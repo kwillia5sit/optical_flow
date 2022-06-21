@@ -1,55 +1,47 @@
-import cv2
+#!/usr/bin/env python3
+
+#Import libraries and Initialize ROS Node
+from cgitb import grey
+from sys import _current_frames
+import rospy
+from sensor_msgs.msg import Image  
+#Image is the message/topic type
 import numpy as np
-  
-  
-# The video feed is read in as
-# a VideoCapture object
-cap = cv2.VideoCapture("Rotate.mpa")
+from cv_bridge import CvBridge
+#CvBridge converts between ROS and Opencv images
+import cv2
+cap = cv2.VideoCapture(0)
 
-# ret = a boolean return value from
-# getting the frame, first_frame = the
-# first frame in the entire video sequence
-ret, first_frame = cap.read()
-  
-# Converts frame to grayscale because we
-# only need the luminance channel for
-# detecting edges - less computationally 
-# expensive
-prev_gray = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
-  
-# Creates an image filled with zero
-# intensities with the same dimensions 
-# as the frame
-mask = np.zeros_like(first_frame)
-  
-# Sets image saturation to maximum
-mask[..., 1] = 255
+def callback(data):
+    br = CvBridge() #converts 
 
-#Now the video stream has been set up.
-#Now we need to read the video frame by frame 
+    rospy.loginfo("recieving video frame, ")
+    #output debugging info to the terminal
+    
+    firstframe = br.imgmsg_to_cv2(data)
+    current_frame=br.imgmsg_to_cv2(data)
+    #converts ROS Image message to OpenCV image
 
+    #Display current image:
+    cv2.imshow("camera", current_frame)
 
-while(cap.isOpened()):
-      
-    # ret = a boolean return value from getting
-    # the frame, frame = the current frame being
-    # projected in the video
-    ret, frame = cap.read()
-      
-    # Opens a new window and displays the input
-    # frame
-    cv2.imshow("input", frame)
-      
-    # Converts each frame to grayscale - we previously 
-    # only converted the first frame to grayscale
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-      
-    # Calculates dense optical flow by Farneback method
+    # Creates an image filled with zero
+    # intensities with the same dimensions 
+    # as the frame
+    mask = np.zeros_like(current_frame)
+    # Sets image saturation to maximum
+    mask[..., 1] = 255
+
+    # Converts current image to grayscale
+    prev_gray = cv2.cvtColor(firstframe, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
+
+    #Read frame compared to last frame
+    #DOING THE OPTICAL FLOW
     flow = cv2.calcOpticalFlowFarneback(prev_gray, gray, 
-                                       None,
-                                       0.5, 3, 15, 3, 5, 1.2, 0)
-      
-    # Computes the magnitude and angle of the 2D vectors
+                                        None,
+                                        0.5, 3, 15, 3, 5, 1.2, 0)
+                                        # Computes the magnitude and angle of the 2D vectors
     magnitude, angle = cv2.cartToPolar(flow[..., 0], flow[..., 1])
       
     # Sets image hue according to the optical flow 
@@ -58,24 +50,36 @@ while(cap.isOpened()):
       
     # Sets image value according to the optical flow
     # magnitude (normalized)
-    mask[..., 2] = cv2.normalize(magnitude, None, 0, 255, cv.NORM_MINMAX)
+    mask[..., 2] = cv2.normalize(magnitude, None, 0, 255, cv2.NORM_MINMAX)
       
     # Converts HSV to RGB (BGR) color representation
     rgb = cv2.cvtColor(mask, cv2.COLOR_HSV2BGR)
       
     # Opens a new window and displays the output frame
     cv2.imshow("dense optical flow", rgb)
-      
-    # Updates previous frame
-    prev_gray = gray
-      
-    # Frames are read by intervals of 1 millisecond. The
-    # programs breaks out of the while loop when the
-    # user presses the 'q' key
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    
+    #make current_frame become firstframe
+    firstframe = current_frame
+    #millisecond delay before next image rolls in
+    cv2.waitKey(1) 
+
+    
+def receive_message():
+  # Tells rospy the name of the node.
+  # Anonymous = True makes sure the node has a unique name. Random
+  # numbers are added to the end of the name. 
+  rospy.init_node('optflow_node', anonymous=True)
+
+ # Node is subscribing to the video_frames topic
+  rospy.Subscriber('/sonar_oculus_node/M750d/image', Image, callback)  
   
-# The following frees up resources and
-# closes all windows
-cap.release()
-cv2.destroyAllWindows()
+  rospy.spin()
+
+  #close down video stream when done
+  cap.release()
+  cv2.destroyAllWindows()
+  
+
+if __name__=='__main__':
+  receive_message()
+
