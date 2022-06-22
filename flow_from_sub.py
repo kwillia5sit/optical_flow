@@ -11,16 +11,42 @@ import numpy as np
 from cv_bridge import CvBridge
 #CvBridge converts between ROS and Opencv images
 import cv2
-cap = cv2.VideoCapture(0)
-br = CvBridge() #converts
+
+
+i = 0 #initializes a counter variable
+print("Hello world")
 
 def callback(data):
-    rospy.loginfo("recieving video frame, ")
-    #output debugging info to the terminal
+  #callback(data) is like the loop of code that the main 
+  #code is calling into use
+  br = CvBridge() #converts
+  #condition 1/2:
+  #for the first frame of the video, there's nothing to compare
+  #so just save that one to be the next pre_gray
+  global i
+  global prev_gray
+  if i < 1:
+    #Convert first frame from ros data to opencv data (image)
+    firstframe = br.imgmsg_to_cv2(data)
+    #converts first frame to opencv image
+    prev_gray = cv2.cvtColor(firstframe, cv2.COLOR_BGR2GRAY)
+    #converts color image to grayscale image, call it prev_gray
+    rospy.loginfo("viewed first image")
+    #debug to the terminal
     
+    i = i+1
+    #add 1 to the i counter
+    cv2.waitKey(1)
+    #move to next image after 1 millisecond
+
+  #condition 2/2 (all else):
+  #each gray should be compared to the prev_gray
+  #in the function for dense optflow
+  else:     
     current_frame = br.imgmsg_to_cv2(data)
     #converts ROS Image message to OpenCV image
-    
+    rospy.loginfo("recieving video frame, ")
+    #output debugging info to the terminal
     #Display current image:
     cv2.imshow("camera", current_frame)
 
@@ -55,29 +81,27 @@ def callback(data):
     # Opens a new window and displays the output frame
     cv2.imshow("dense optical flow", rgb)
 
-    #make current_frame become firstframe
+    #turn the gray image just used into the next prev_gray
     prev_gray = gray
+    #add 1 to the counter
+    i = i+1
+
     #millisecond delay before next image rolls in
     cv2.waitKey(1) 
+  
 
-
+#main code (runs once)
 def receive_message():
   # Tells rospy the name of the node.
   # Anonymous = True makes sure the node has a unique name. Random
   # numbers are added to the end of the name. 
   rospy.init_node('optflow_node', anonymous=True)
 
-  #Initialize first frame for the loop.
-  firstframe = br.imgmsg_to_cv2(data)
-  prev_gray = cv2.cvtColor(firstframe, cv2.COLOR_BGR2GRAY)
-
  # Node is subscribing to the video_frames topic
-  rospy.Subscriber('/sonar_oculus_node/M750d/image', Image, callback)  
+  rospy.Subscriber('/sonar_oculus_node/M1200d/image', Image, callback)  
 
   rospy.spin()
 
-  #close down video stream when done
-  cap.release()
   cv2.destroyAllWindows()
 
 
