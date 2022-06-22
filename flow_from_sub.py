@@ -2,6 +2,7 @@
 
 #Import libraries and Initialize ROS Node
 from cgitb import grey
+from dataclasses import dataclass
 from sys import _current_frames
 import rospy
 from sensor_msgs.msg import Image  
@@ -11,17 +12,15 @@ from cv_bridge import CvBridge
 #CvBridge converts between ROS and Opencv images
 import cv2
 cap = cv2.VideoCapture(0)
+br = CvBridge() #converts
 
 def callback(data):
-    br = CvBridge() #converts 
-
     rospy.loginfo("recieving video frame, ")
     #output debugging info to the terminal
     
-    firstframe = br.imgmsg_to_cv2(data)
-    current_frame=br.imgmsg_to_cv2(data)
+    current_frame = br.imgmsg_to_cv2(data)
     #converts ROS Image message to OpenCV image
-
+    
     #Display current image:
     cv2.imshow("camera", current_frame)
 
@@ -33,53 +32,54 @@ def callback(data):
     mask[..., 1] = 255
 
     # Converts current image to grayscale
-    prev_gray = cv2.cvtColor(firstframe, cv2.COLOR_BGR2GRAY)
     gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
 
     #Read frame compared to last frame
     #DOING THE OPTICAL FLOW
     flow = cv2.calcOpticalFlowFarneback(prev_gray, gray, 
-                                        None,
-                                        0.5, 3, 15, 3, 5, 1.2, 0)
+                                        None, 0.5, 7, 12, 7, 5, 1.5, 1)
                                         # Computes the magnitude and angle of the 2D vectors
     magnitude, angle = cv2.cartToPolar(flow[..., 0], flow[..., 1])
-      
+
     # Sets image hue according to the optical flow 
     # direction
     mask[..., 0] = angle * 180 / np.pi / 2
-      
+
     # Sets image value according to the optical flow
     # magnitude (normalized)
     mask[..., 2] = cv2.normalize(magnitude, None, 0, 255, cv2.NORM_MINMAX)
-      
+
     # Converts HSV to RGB (BGR) color representation
     rgb = cv2.cvtColor(mask, cv2.COLOR_HSV2BGR)
-      
+
     # Opens a new window and displays the output frame
     cv2.imshow("dense optical flow", rgb)
-    
+
     #make current_frame become firstframe
-    firstframe = current_frame
+    prev_gray = gray
     #millisecond delay before next image rolls in
     cv2.waitKey(1) 
 
-    
+
 def receive_message():
   # Tells rospy the name of the node.
   # Anonymous = True makes sure the node has a unique name. Random
   # numbers are added to the end of the name. 
   rospy.init_node('optflow_node', anonymous=True)
 
+  #Initialize first frame for the loop.
+  firstframe = br.imgmsg_to_cv2(data)
+  prev_gray = cv2.cvtColor(firstframe, cv2.COLOR_BGR2GRAY)
+
  # Node is subscribing to the video_frames topic
   rospy.Subscriber('/sonar_oculus_node/M750d/image', Image, callback)  
-  
+
   rospy.spin()
 
   #close down video stream when done
   cap.release()
   cv2.destroyAllWindows()
-  
+
 
 if __name__=='__main__':
   receive_message()
-
