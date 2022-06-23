@@ -38,13 +38,14 @@ def callback(data):
     #debug to the terminal
     i = i+1
     #add 1 to the i counter
-    cv2.waitKey(0)
+    cv2.waitKey(2)
     #move to next image after 1 millisecond
 
   #condition 2/2 (all else):
   #each gray should be compared to the prev_gray
   #in the function for dense optflow
   else:    
+    #if you need to debug uncomment: 
     cv2.imshow("first prev_gray", prev_gray)
     current_frame = br.imgmsg_to_cv2(data)
     #converts ROS Image message to OpenCV image
@@ -67,8 +68,30 @@ def callback(data):
     #Read frame compared to last frame
     #DOING THE OPTICAL FLOW
     flow = cv2.calcOpticalFlowFarneback(prev_gray, gray, 
-                                        None, 0.5, 3, 12, 3, 5, 1.2, 1)
-                                        # Computes the magnitude and angle of the 2D vectors
+                                        #prevImg, current Img,
+                                        None, 
+                                        #flow: computed flow image that has same size as previous frame,
+                                        0.25, 
+                                        #pyr_scale: how much smaller the pyramid layer is from
+                                        # the previous one
+                                        # Keep it small because at 0.5, sometimes the next layers weren't 
+                                        # small enough to see the difference between frames, causing black screens.
+                                        3, 
+                                        #levels: number of pyramid layers, inclduing first image
+                                        18, 
+                                        #winsize: avg window size. Larger numbers detct more noise and
+                                        # detect faster movements, but make movement area look blurrier
+                                        3, 
+                                        #iterations: number of iterations at each pyramid layer
+                                        7, 
+                                        #polyN: size of pixel neighborhood used for polynomial expansions
+                                        # Larger numbers are more robust algorithms, can approximate smoother 
+                                        # surfaces, and make blurrier outputs
+                                        1.5, 
+                                        #Standard deviation of the Gaussian for the polynomial expansions
+                                        1)
+                                        #Operation flags
+      # Compute the magnitude and angle of the 2D vectors                                
     magnitude, angle = cv2.cartToPolar(flow[..., 0], flow[..., 1])
 
     # Sets image hue according to the optical flow 
@@ -77,7 +100,7 @@ def callback(data):
 
     # Sets image value according to the optical flow
     # magnitude (normalized)
-    mask[..., 2] = cv2.normalize(magnitude, None, 0, 255, cv2.NORM_MINMAX)
+    mask[..., 2] = cv2.normalize(magnitude, magnitude, 0, 255, cv2.NORM_MINMAX)
 
     # Converts HSV to RGB (BGR) color representation
     rgb = cv2.cvtColor(mask, cv2.COLOR_HSV2BGR)
@@ -87,12 +110,13 @@ def callback(data):
 
     #turn the gray image just used into the next prev_gray
     prev_gray = gray
-    cv2.imshow("new pre_gray", prev_gray)
+    #if you need to debug uncomment: 
+    cv2.imshow("new prev_gray", prev_gray)
     #add 1 to the counter
     i = i+1
 
     #millisecond delay before next image rolls in
-    cv2.waitKey(0) 
+    cv2.waitKey(2) 
   
 
 # runs once
