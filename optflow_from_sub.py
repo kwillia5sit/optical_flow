@@ -38,15 +38,14 @@ def callback(data):
     #debug to the terminal
     i = i+1
     #add 1 to the i counter
-    cv2.waitKey(2)
+    cv2.waitKey(1)
     #move to next image after 1 millisecond
 
   #condition 2/2 (all else):
   #each gray should be compared to the prev_gray
   #in the function for dense optflow
   else:    
-    #if you need to debug uncomment: 
-    cv2.imshow("first prev_gray", prev_gray)
+    #if you need to debug uncomment: cv2.imshow("first prev_gray", prev_gray)
     current_frame = br.imgmsg_to_cv2(data)
     #converts ROS Image message to OpenCV image
     rospy.loginfo("recieving video frame, ")
@@ -71,24 +70,24 @@ def callback(data):
                                         #prevImg, current Img,
                                         None, 
                                         #flow: computed flow image that has same size as previous frame,
-                                        0.25, 
+                                        0.7, 
                                         #pyr_scale: how much smaller the pyramid layer is from
                                         # the previous one
                                         # Keep it small because at 0.5, sometimes the next layers weren't 
                                         # small enough to see the difference between frames, causing black screens.
-                                        3, 
+                                        5, 
                                         #levels: number of pyramid layers, inclduing first image
                                         18, 
                                         #winsize: avg window size. Larger numbers detct more noise and
                                         # detect faster movements, but make movement area look blurrier
                                         3, 
                                         #iterations: number of iterations at each pyramid layer
-                                        7, 
+                                        1, 
                                         #polyN: size of pixel neighborhood used for polynomial expansions
                                         # Larger numbers are more robust algorithms, can approximate smoother 
                                         # surfaces, and make blurrier outputs
-                                        1.5, 
-                                        #Standard deviation of the Gaussian for the polynomial expansions
+                                        1.0, 
+                                        #polySigma: Standard deviation of the Gaussian for the polynomial expansions
                                         1)
                                         #Operation flags
       # Compute the magnitude and angle of the 2D vectors                                
@@ -108,15 +107,21 @@ def callback(data):
     # Opens a new window and displays the output frame
     cv2.imshow("dense optical flow", rgb)
 
+   # print(i)
+    #print(br.cv2_to_imgmsg(rgb))
+
+
+
+
     #turn the gray image just used into the next prev_gray
     prev_gray = gray
-    #if you need to debug uncomment: 
-    cv2.imshow("new prev_gray", prev_gray)
+    #if you need to debug uncomment: cv2.imshow("new prev_gray", prev_gray)
+
     #add 1 to the counter
     i = i+1
 
     #millisecond delay before next image rolls in
-    cv2.waitKey(2) 
+    cv2.waitKey(1) 
   
 
 # runs once
