@@ -42,10 +42,10 @@ def callback(data):
     if i<1:
         # Take first frame of bag message and convert it to openCv image:
         prev_frame = br.imgmsg_to_cv2(data)
-        #Taje that frame and convert it to a grayscale image:
+        #Take that frame and convert it to a grayscale image:
         prev_gray = cv2.cvtColor(prev_frame, cv2.COLOR_BGR2GRAY)
         #Take that grayscale image and find the significant features
-        prev_features = cv2.goodFeaturesToTrack(prev_gray, None, **feature_params)
+        prev_features = cv2.goodFeaturesToTrack(prev_gray, **feature_params)
 
         # Create a mask image for drawing purposes
         mask = np.zeros_like(prev_frame)
@@ -56,32 +56,27 @@ def callback(data):
         cur_gray = cv2.cvtColor(cur_frame, cv2.COLOR_BGR2GRAY)
 
 	    # calculate optical flow
-        cur_features, st, err = cv2.calcOpticalFlowPyrLK(prev_gray,
+        cur_features = cv2.calcOpticalFlowPyrLK(prev_gray,
 										        cur_gray,
 										        prev_features, None,
 										         **lk_params)
+        prev_r = cv2.calcOpticalFlowPyrLK(cur_gray, prev_gray, cur_features, None, **lk_params)
+        #Measure change between original prev_point and prev_r
+        d = abs(prev_features-prev_r).reshape(-1, 2).max(-1)
 
 	    # Select good points
-        good_cur = cur_features[st == 1]
-        good_prev = prev_features[st == 1]
-
-	    # draw the tracks
-        for i, (cur, prev) in enumerate(zip(good_cur,
-									good_prev)):
-            a, b = cur.ravel()
-            c, d = prev.ravel()
-            mask = cv2.line(mask, (a, b), (c, d),
-			                    color[i].tolist(), 2)
-            frame = cv2.circle(frame, (a, b), 5,
-			                    color[i].tolist(), -1)
+        #d < 1, the point is good
+        if d<1:
+            mask = cv2.line(mask, cur_features.ravel(), prev_features.ravel(), color.tolist(), 2)
+            frame = cv2.circle(frame, cur_features, 5, color.tolist(), -1)
             img = cv2.add(frame, mask)
 
-        #Show the tracks
-        cv2.imshow('frame', img)
+            #Show the tracks
+            cv2.imshow('frame', img)
 
-        #Update previous frame and features
-        prev_gray = cur_gray
-        prev_features = good_cur.reshape(-1, 1, 2)
+            #Update previous frame and features
+            prev_gray = cur_gray
+            prev_features = (prev_features-prev_r).reshape(-1, 1, 2)
         cv2.waitKey(1)
 
 
