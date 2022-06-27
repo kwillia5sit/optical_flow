@@ -52,30 +52,29 @@ def callback(data):
 
     else:
 	    #Take current frame and make it an openCV grayscale
-	    cur_frame = br.imgmsg_to_cv2(data)
-	    cur_gray = cv2.cvtColor(cur_frame, cv2.COLOR_BGR2GRAY)
+        cur_frame = br.imgmsg_to_cv2(data)
+        cur_gray = cv2.cvtColor(cur_frame, cv2.COLOR_BGR2GRAY)
 
 	    # calculate optical flow
-	    cur_features, st, err = cv2.calcOpticalFlowPyrLK(prev_gray,
+        cur_features, st, err = cv2.calcOpticalFlowPyrLK(prev_gray,
 										        cur_gray,
 										        prev_features, None,
-										        **lk_params)
+										         **lk_params)
 
 	    # Select good points
-	    good_cur = cur_features[st == 1]
-	    good_prev = prev_features[st == 1]
+        good_cur = cur_features[st == 1]
+        good_prev = prev_features[st == 1]
 
 	    # draw the tracks
-	    for i, (cur, prev) in enumerate(zip(good_cur,
+        for i, (cur, prev) in enumerate(zip(good_cur,
 									good_prev)):
-		    a, b = cur.ravel()
-		    c, d = prev.ravel()
-		    mask = cv2.line(mask, (a, b), (c, d),
-						    color[i].tolist(), 2)
-		
-		    frame = cv2.circle(frame, (a, b), 5,
-						    color[i].tolist(), -1)
-	    img = cv2.add(frame, mask)
+            a, b = cur.ravel()
+            c, d = prev.ravel()
+            mask = cv2.line(mask, (a, b), (c, d),
+			                    color[i].tolist(), 2)
+            frame = cv2.circle(frame, (a, b), 5,
+			                    color[i].tolist(), -1)
+            img = cv2.add(frame, mask)
 
         #Show the tracks
         cv2.imshow('frame', img)
