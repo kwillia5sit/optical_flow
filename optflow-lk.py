@@ -91,14 +91,14 @@ def callback(data):
       #print("The cur_tuple types is", type(cur_tuple[s]))
 
       #draw a line on the mask
-      mask = cv2.line(mask,(a, b), (c, d),
+      mask = cv2.line(mask, (int(a), int(b)), (int(c), int(d)),
                         color[s].tolist(), 2)
-      frame = cv2.circle(cur_frame, prev, cur, 5,
+      frame = cv2.circle(cur_frame, (int(a), int(b)), 5,
                            color[s].tolist(), -1)
           
-    #img = cv2.add(frame, mask)
-  
-    cv2.imshow('frame', frame)
+    image = cv2.add(frame, mask)
+    
+    cv2.imshow('optical flow', image)
 
         #update previous frame and features
     prev_gray = cur_gray
