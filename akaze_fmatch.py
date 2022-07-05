@@ -15,15 +15,15 @@ i = 0
 feature_params = dict( maxCorners = 200, #maximum number of features
 					    qualityLevel = 0.5,  #features with a quality rating of less than this number are rejected
                                     #ex: if best corner is 1500 and 0.01 is qlevel, anything under 15 for score is rejected
-				        minDistance = 2,    #minimum distance between the points being picked
+				        minDistance = 4,    #minimum distance between the points being picked
 				        blockSize = 7)     #average block size for pixel neighborhoods
 
 # Parameters for lucas kanade optical flow
 lk_params = dict(winSize = (9, 9),              #window size each pyramid level
-	    		 maxLevel = 3,                       #number of pyramid levels 
+	    		 maxLevel = 4,                       #number of pyramid levels 
 		    	 criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT,   #termination criteria: Stop after 10 iterations, 
                                                                                 #criteria count matches the quality level
-			    			10, 0.03),
+			    			10, 0.025),
                  flags = 0,                 #Flags determine what the error is calculating.
                  minEigThreshold = 1e-4)     #Threshold for smallest eignevalue minimum that can ount as good data   
                  #zero/not set flags is error from initial position at prevpts
@@ -58,8 +58,6 @@ def callback(data):
     my_size = int(array_size/2)
     #Reshape the array to be used by optical flow calculation
     key_points.shape = (my_size, 1, 2)
-    print("key point are:")
-    print(key_points)
     # Create a mask image for drawing purposes
     mask = np.zeros_like(prev_frame)
     i = i+1
@@ -80,8 +78,6 @@ def callback(data):
     cur_size = int(cur_points.size)
     cur_size = int(cur_size/2)
     cur_points.shape = (cur_size, 1, 2)
-    print("cur points are:")
-    print(cur_points)
 
     #print("initial descs are: ")
     #print(descsi)
@@ -120,14 +116,13 @@ def callback(data):
             frame = cv2.circle(cur_frame, (int(a), int(b)), 5,
                            rgb, -1)
 
-          
+    avg_err= sum(L1>3)/len(L1>3) 
+    print("avg_err = ", avg_err)   
     image = cv2.add(frame, mask)
     cv2.imshow('optical flow', image)
     cv2.waitKey(1)
     key_points = cur_points
     prev_gray = cur_gray
-    print("new key points are: ")
-    print(key_points)
     #add 1 to the counter 
     i = i+1
 #end of callback loop
