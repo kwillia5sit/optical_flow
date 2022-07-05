@@ -69,7 +69,7 @@ def callback(data):
     cur_frame = br.imgmsg_to_cv2(data)
     cur_gray = cv2.cvtColor(cur_frame, cv2.COLOR_BGR2GRAY)
     cv2.imshow("image", cur_frame)
-    cv2.waitKey(1000)
+    cv2.waitKey(1)
 
 	# calculate optical flow
     cur_points, st, err = cv2.calcOpticalFlowPyrLK(prev_gray,
@@ -123,7 +123,7 @@ def callback(data):
           
     image = cv2.add(frame, mask)
     cv2.imshow('optical flow', image)
-    cv2.waitKey(1000)
+    cv2.waitKey(1)
     key_points = cur_points
     prev_gray = cur_gray
     print("new key points are: ")
