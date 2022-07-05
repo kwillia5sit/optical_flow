@@ -130,7 +130,7 @@ def receive_message():
   # numbers are added to the end of the name. 
   rospy.init_node('optflowLK_node', anonymous=True)
   # Node is subscribing to the video_frames topic
-  rospy.Subscriber('/sonar_oculus_node/M1200d/image', Image, callback)
+  rospy.Subscriber('/sonar_oculus_node/image', Image, callback)
   rospy.spin()
   cv2.destroyAllWindows()
 
