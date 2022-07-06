@@ -7,14 +7,17 @@ import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
+import random
+from statistics import mean
+
 
 #define a global counter variable and set as 0. 
 i = 0
 
 # parameters for feature detection
 feature_params = dict( maxCorners = 200, #maximum number of features
-					    qualityLevel = 0.5,  #features with a quality rating of less than this number are rejected
-                                    #ex: if best corner is 1500 and 0.01 is qlevel, anything under 15 for score is rejected
+					    qualityLevel = 0.7,  #features with a quality rating of less than this number are rejected
+                                            #ex: if best corner is 1500 and 0.01 is qlevel, anything under 15 for score is rejected
 				        minDistance = 4,    #minimum distance between the points being picked
 				        blockSize = 7)     #average block size for pixel neighborhoods
 
@@ -86,7 +89,7 @@ def callback(data):
     #print("current descs are: ")
     #print(cur_descs)
 
-    # Only use good points (had status 1)
+     # Only use good points (had status 1)
     good_cur = cur_points[st == 1]
     good_prev = key_points[st == 1]
   
@@ -101,7 +104,7 @@ def callback(data):
         #r = np.random.randint(0, 255)
         #g = np.random.randint(0, 255)
         #b = np.random.randint(0, 255)
-        rgb = (10, 10, 200)
+        rgb = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
 
         #Print the error
         #print("The error for ", cur, "is:", err[s])
@@ -115,7 +118,6 @@ def callback(data):
                             rgb, 2)
             frame = cv2.circle(cur_frame, (int(a), int(b)), 5,
                            rgb, -1)
-
     avg_err= sum(L1>3)/len(L1>3) 
     print("avg_err = ", avg_err)   
     image = cv2.add(frame, mask)
@@ -129,12 +131,12 @@ def callback(data):
 
 
 def receive_message():
-  # Runs o, descs1 , descs1 nce
+  # Runs once descs1 nce
   # Tells rospy the name of the node.
   # Anonymous = True makes sure the node has a unique name. Random
   # numbers are added to the end of the name. 
   rospy.init_node('optflowLK_node', anonymous=True)
-  # Node is subscribing to the video_frames topic
+  # Node is subscribing to the sonar oculus node/image topic
   rospy.Subscriber('/sonar_oculus_node/image', Image, callback)
   rospy.spin()
   cv2.destroyAllWindows()
