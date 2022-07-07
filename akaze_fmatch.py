@@ -10,7 +10,6 @@ import cv2
 import random
 from statistics import mean
 
-
 #define a global counter variable and set as 0. 
 i = 0
 
@@ -32,6 +31,20 @@ lk_params = dict(winSize = (9, 9),              #window size each pyramid level
                  #zero/not set flags is error from initial position at prevpts
 detector = cv2.KAZE_create()
 
+#Create array of random colors for drawing purposes
+#set the number of colors equal to the maximum number of features from feature_params
+no_of_colors = 200
+#create empty array with 3 rows
+color_array = np.empty((0,3), int)
+for n in range(no_of_colors):
+  #Generate random color 
+  color = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
+  #Add color to the array
+  color_array = np.append(color_array, np.array([color]), axis=0)
+#print(color)
+#print(color_array)
+#print(type(color_array))
+#print(color)
 def callback(data):
   #Make the global variables for the named variables
   global prev_frame
@@ -89,10 +102,10 @@ def callback(data):
     #print("current descs are: ")
     #print(cur_descs)
 
-     # Only use good points (had status 1)
+    # Only use good points (had status 1)
     good_cur = cur_points[st == 1]
     good_prev = key_points[st == 1]
-  
+
     # Make a loop to put points into an array
     for s, (cur, prev) in enumerate(zip(good_cur, 
                                        good_prev)):
@@ -100,26 +113,26 @@ def callback(data):
         a, b = cur.ravel()
         c, d = prev.ravel()
 
-        #create a random color
-        #r = np.random.randint(0, 255)
-        #g = np.random.randint(0, 255)
-        #b = np.random.randint(0, 255)
-        rgb = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
 
         #Print the error
         #print("The error for ", cur, "is:", err[s])
         #"L1 distance between new patch and original patch / pixels in window is error"
-        L1 = err[s]*81
+        L1 = err[s]*9
         #print("L1 = ", err[s]*9)
-        #If error is greater than 3
-        if L1>3:
+        #If error is greater than 3 and less than 500:
+        if L1>3 and L1 < 500:
+            #create a random color
+            #Turn each color's numbers into a list
+            rand_color = color_array[s].tolist()
+            #rgb = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
+            print(rand_color)
             #draw a line on the mask
             mask = cv2.line(mask, (int(a), int(b)), (int(c), int(d)), 
-                            rgb, 2)
+                            rand_color, 2)
             frame = cv2.circle(cur_frame, (int(a), int(b)), 5,
-                           rgb, -1)
-    avg_err= sum(L1>3)/len(L1>3) 
-    print("avg_err = ", avg_err)   
+                           rand_color, -1)
+    #avg_err= sum(L1)/s
+    #print("avg_err = ", avg_err)   
     image = cv2.add(frame, mask)
     cv2.imshow('optical flow', image)
     cv2.waitKey(1)
