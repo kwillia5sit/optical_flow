@@ -13,21 +13,14 @@ from statistics import mean
 #define a global counter variable and set as 0. 
 i = 0
 
-# parameters for feature detection
-feature_params = dict( maxCorners = 200, #maximum number of features
-					    qualityLevel = 0.7,  #features with a quality rating of less than this number are rejected
-                                            #ex: if best corner is 1500 and 0.01 is qlevel, anything under 15 for score is rejected
-				        minDistance = 4,    #minimum distance between the points being picked
-				        blockSize = 7)     #average block size for pixel neighborhoods
-
 # Parameters for lucas kanade optical flow
 lk_params = dict(winSize = (9, 9),              #window size each pyramid level
 	    		 maxLevel = 4,                       #number of pyramid levels 
 		    	 criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT,   #termination criteria: Stop after 10 iterations, 
                                                                                 #criteria count matches the quality level
-			    			10, 0.025),
+			    			4, 0.025),
                  flags = 0,                 #Flags determine what the error is calculating.
-                 minEigThreshold = 1e-4)     #Threshold for smallest eignevalue minimum that can ount as good data   
+                 minEigThreshold = 1e-3)     #Threshold for smallest eignevalue minimum that can ount as good data   
                  #zero/not set flags is error from initial position at prevpts
 detector = cv2.KAZE_create()
 
@@ -41,10 +34,7 @@ for n in range(no_of_colors):
   color = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
   #Add color to the array
   color_array = np.append(color_array, np.array([color]), axis=0)
-#print(color)
-#print(color_array)
-#print(type(color_array))
-#print(color)
+
 def callback(data):
   #Make the global variables for the named variables
   global prev_frame
@@ -113,7 +103,6 @@ def callback(data):
         a, b = cur.ravel()
         c, d = prev.ravel()
 
-
         #Print the error
         #print("The error for ", cur, "is:", err[s])
         #"L1 distance between new patch and original patch / pixels in window is error"
@@ -121,11 +110,8 @@ def callback(data):
         #print("L1 = ", err[s]*9)
         #If error is greater than 3 and less than 500:
         if L1>3 and L1 < 500:
-            #create a random color
-            #Turn each color's numbers into a list
+            #Pick color number s from the array and turn its numbers into a list
             rand_color = color_array[s].tolist()
-            #rgb = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
-            print(rand_color)
             #draw a line on the mask
             mask = cv2.line(mask, (int(a), int(b)), (int(c), int(d)), 
                             rand_color, 2)
@@ -141,7 +127,6 @@ def callback(data):
     #add 1 to the counter 
     i = i+1
 #end of callback loop
-
 
 def receive_message():
   # Runs once descs1 nce
