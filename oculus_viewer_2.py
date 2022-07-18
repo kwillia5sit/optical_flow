@@ -1,3 +1,4 @@
+#Need to run this before/while running sample_data.bag for it to be visualized
 #!/usr/bin/env python3
 import numpy as np
 import cv2
