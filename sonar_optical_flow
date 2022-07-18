@@ -1,3 +1,7 @@
+#Takes the AKAZE detected features from the first frame of the sonar image
+#Sets those features as keypoints to calculate apparent motion using lucas-kanade optical flow
+#Tracks the movement and draws lines along the feature's movement
+
 #!/usr/bin/env python3
 
 from colorsys import rgb_to_hls
