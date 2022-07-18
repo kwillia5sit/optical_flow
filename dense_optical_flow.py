@@ -1,3 +1,8 @@
+#OLD CODE
+#Uses Farneback Dense Optical Flow to track perceived motion.
+#The sonar images are too bright for this method
+#The method lacks precise lines needed to eventualy find velocity
+
 #!/usr/bin/env python3
 
 #Import libraries and Initialize ROS Node
