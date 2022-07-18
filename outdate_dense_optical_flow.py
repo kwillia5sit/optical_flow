@@ -1,3 +1,6 @@
+#Left in the github only to display progress
+#Uses Farneback Dense Optical Flow method
+#Not viable for sonar images
 #!/usr/bin/env python3
 
 #Import libraries and Initialize ROS Node
