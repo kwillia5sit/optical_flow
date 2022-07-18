@@ -1,3 +1,6 @@
+
+#Template optical for tracking dense flow in videos
+#Was used as learning tool and to test what works
 import cv2
 import numpy as np
   
