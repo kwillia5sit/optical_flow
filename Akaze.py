@@ -1,3 +1,5 @@
+#Began using Kaze and Akaze feature detectors to choose keypoints
+#More recent version is available. 
 #!/usr/bin/env python3
 
 from colorsys import rgb_to_hls
@@ -27,6 +29,7 @@ lk_params = dict(winSize = (3, 3),              #window size each pyramid level
                  flags = 0)        #Flags determine what the error is calculating.
                  #zero/not set flags is error from initial position at prevpts
 detector = cv2.KAZE_create()
+#For AKAZE Uncomment: detector = cv2.KAZE_create()
 
 def callback(data):
   #Make the global variables for the named variables
