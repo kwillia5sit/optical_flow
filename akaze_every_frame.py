@@ -1,3 +1,6 @@
+#Is being use to experiment how to pik new AKAZE features in frame
+#Separate from sonar_optical_flow.py to avoid messing the other one up
+
 #!/usr/bin/env python3
 #include <opencv2/features2d.hpp>
 
