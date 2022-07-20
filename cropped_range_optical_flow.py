@@ -1,3 +1,6 @@
+#Can input an array of points for a polygon on the orginal image and crop the image to that size.
+#Get optical flow pattern from that cropped image
+
 #!/usr/bin/env python3
 
 from colorsys import rgb_to_hls
