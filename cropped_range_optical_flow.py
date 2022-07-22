@@ -1,6 +1,3 @@
-#Can input an array of points for a polygon on the orginal image and crop the image to that size.
-#Get optical flow pattern from that cropped image
-
 #!/usr/bin/env python3
 
 from colorsys import rgb_to_hls
@@ -23,9 +20,13 @@ lk_params = dict(winSize = (9, 9),              #window size each pyramid level
                                                                                 #criteria count matches the quality level
 			    			4, 0.025),
                  flags = 0,                 #Flags determine what the error is calculating.
-                 minEigThreshold = 1e-3)     #Threshold for smallest eignevalue minimum that can ount as good data   
+                 minEigThreshold = 1e-2)     #Threshold for smallest eignevalue minimum that can ount as good data   
                  #zero/not set flags is error from initial position at prevpts
-detector = cv2.AKAZE_create()
+detector = cv2.AKAZE_create(
+                  descriptor_type= 2,   #Descriptor type 2 = invariant to rotation
+                                      #Descriptor type 3 = normal/not that
+                  descriptor_channels=1     )
+
 
 #Create array of random colors for drawing purposes
 #set the number of colors equal to the maximum number of features from feature_params
@@ -115,12 +116,22 @@ def callback(data):
 									        cur_gray,
 									        key_points, None,
 									         **lk_params)
-    #Use the resizing array method again on the current points
+    tracking = []
+    
+    for y in range(len(cur_points)):
+      stats = np.array([cur_points[y], ",", st[y], ",", err[y]])
+      print(stats)
+
     cur_size = int(cur_points.size)
     cur_size = int(cur_size/2)
-    cur_points.shape = (cur_size, 1, 2)
-
+    cur_points.shape = (cur_size, 1, 2)    ##  tracking.append([cur_points, st])
+     # print(tracking)
+    #Use the resizing array method again on the current points
+ 
     ####Make something to do with the status here
+
+
+
     cur_descs = detector.detectAndCompute(cur_gray, None, cur_points)
 
     # Only use good points (had status 1)
@@ -140,7 +151,7 @@ def callback(data):
         L1 = err[s]*9
         #print("L1 = ", err[s]*9)
         #If error is greater than 3 and less than 500:
-        if L1>3 and L1 < 500:
+        if L1>3 and L1 < 300:
             #Pick color number s from the array and turn its numbers into a list
             rand_color = color_array[s].tolist()
             #draw a line on the mask
